@@ -6,15 +6,24 @@ from matplotlib.font_manager import FontProperties
 import pandas as pd
 import numpy as np
 
-# ✅ 한글 폰트 설정 함수
+# ✅ 절대 경로 기반 폰트 설정
 def get_korean_font():
-    font_path = "NanumGothic.ttf"
-    if not os.path.exists(font_path):
+    base_dir = os.path.dirname(__file__)  # 현재 파일 기준 경로
+    font_path = os.path.join(base_dir, "NanumGothic.ttf")  # 같은 디렉토리에 있어야 함
+    if not os.path.isfile(font_path):
         st.warning("❗ NanumGothic.ttf 파일이 없습니다.")
         return None
+    fm.fontManager.addfont(font_path)
     return FontProperties(fname=font_path)
 
 font_prop = get_korean_font()
+
+# ✅ 전체적으로 rcParams에도 등록해두기 (일부 누락 방지용)
+if font_prop:
+    plt.rcParams["font.family"] = font_prop.get_name()
+    plt.rcParams["axes.unicode_minus"] = False
+else:
+    st.stop()  # 폰트 없으면 앱 종료
 
 @st.cache_data
 def load_cctv_data():
