@@ -1,14 +1,19 @@
-import streamlit as st
-import pandas as pd
+import os
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-import numpy as np
-# import folium
-# from folium.plugins import MarkerCluster
-# from streamlit_folium import st_folium
+import matplotlib.font_manager as fm
 
-mpl.rc('font', family='Malgun Gothic')  # macOS는 'AppleGothic'
-mpl.rcParams['axes.unicode_minus'] = False
+# ✅ 폰트 경로를 절대 경로로 지정
+def set_korean_font():
+    font_path = os.path.join(os.path.dirname(__file__), "..", "NanumGothic.ttf")
+    if not os.path.exists(font_path):
+        st.error("❌ NanumGothic.ttf 파일이 존재하지 않습니다.")
+        return
+
+    fm.fontManager.addfont(font_path)
+    font_name = fm.FontProperties(fname=font_path).get_name()
+    plt.rcParams['font.family'] = font_name
+    plt.rcParams['axes.unicode_minus'] = False
+
 
 @st.cache_data
 def load_cctv_data():
