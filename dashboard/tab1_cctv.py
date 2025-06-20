@@ -1,10 +1,10 @@
 import os
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
+import streamlit as st
 
-# ✅ 폰트 경로를 절대 경로로 지정
 def set_korean_font():
-    font_path = os.path.join(os.path.dirname(__file__), "..", "NanumGothic.ttf")
+    font_path = "NanumGothic.ttf"  # ✅ 현재 디렉토리 기준으로
     if not os.path.exists(font_path):
         st.error("❌ NanumGothic.ttf 파일이 존재하지 않습니다.")
         return
@@ -13,6 +13,7 @@ def set_korean_font():
     font_name = fm.FontProperties(fname=font_path).get_name()
     plt.rcParams['font.family'] = font_name
     plt.rcParams['axes.unicode_minus'] = False
+
 
 
 @st.cache_data
