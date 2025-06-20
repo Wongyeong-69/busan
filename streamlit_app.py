@@ -5,10 +5,11 @@ import os
 
 
 def set_korean_font():
-    font_path = "NanumGothic.ttf"  # 루트 디렉토리에 있어야 함
+    font_path = os.path.join(os.path.dirname(__file__), "NanumGothic.ttf")
     if not os.path.exists(font_path):
         st.warning("❗ NanumGothic.ttf 파일이 없습니다. 한글이 깨질 수 있습니다.")
         return
+
     fm.fontManager.addfont(font_path)
     font_name = fm.FontProperties(fname=font_path).get_name()
     plt.rcParams['font.family'] = font_name
