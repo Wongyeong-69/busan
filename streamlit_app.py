@@ -1,4 +1,20 @@
 import streamlit as st
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+import os
+
+
+def set_korean_font():
+    font_path = "NanumGothic.ttf"  # 루트 디렉토리에 있어야 함
+    if not os.path.exists(font_path):
+        st.warning("❗ NanumGothic.ttf 파일이 없습니다. 한글이 깨질 수 있습니다.")
+        return
+    fm.fontManager.addfont(font_path)
+    font_name = fm.FontProperties(fname=font_path).get_name()
+    plt.rcParams['font.family'] = font_name
+    plt.rcParams['axes.unicode_minus'] = False
+
+set_korean_font()  # 🔻 이거 꼭 실행해야 적용됨
 
 # ✅ 가장 첫 줄에서 단 한 번 호출
 st.set_page_config(page_title="부산시 통합 시각화", layout="wide")
