@@ -27,7 +27,11 @@ else:
 if font_path:
     fontprop = fm.FontProperties(fname=font_path)
     plt.rcParams['axes.unicode_minus'] = False
+<<<<<<< HEAD
     plt.rcParams['font.family'] = fontprop.get_name()  # ✅ 전역 설정
+=======
+    plt.rcParams['font.family'] = fontprop.get_name()  # ✅ 전체 그래프에 적용
+>>>>>>> 8e0557a (부산 시각화 대시보드 업로드)
 else:
     fontprop = None
 
