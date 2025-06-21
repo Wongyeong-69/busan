@@ -1,3 +1,5 @@
+# dashboard/tab4_police_count.py
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -23,50 +25,42 @@ else:
             font_path = None
 
 if font_path:
-    # 1) 폰트를 Matplotlib에 등록
-    fm.fontManager.addfont(font_path)
-    # 2) 등록된 폰트 이름 얻기
-    font_name = fm.FontProperties(fname=font_path).get_name()
-    # 3) 전역 rcParam으로 설정
-    plt.rcParams['font.family'] = font_name
+    fontprop = fm.FontProperties(fname=font_path)
+    plt.rcParams['axes.unicode_minus'] = False
+    plt.rcParams['font.family'] = fontprop.get_name()  # ✅ 전체 그래프에 적용
+else:
+    fontprop = None
 
-# 한글 마이너스 기호 깨짐 방지
-plt.rcParams['axes.unicode_minus'] = False
-
-# ─── 경찰서 데이터 로더 (UTF-8 전용) ───
+# ─── 데이터 로더 ───
 @st.cache_data
 def load_police_data(path="data/부산동별경찰서.csv"):
     df = pd.read_csv(path, encoding="utf-8")
     df.columns = df.columns.str.strip()
     return df
 
-# ─── 특정 키워드 포함 컬럼 찾기 ───
+# ─── 키워드 컬럼 찾기 ───
 def find_column(df, keywords):
     for col in df.columns:
         if any(kw in col for kw in keywords):
             return col
     return None
 
-# ─── 탭4 함수 ───
+# ─── 탭 함수 ───
 def tab4_police_count():
-    # 서브헤더에서 이모지 제거
-    st.subheader("부산 동별 경찰서 수")
+    st.subheader("🚓 부산 동별 경찰서 수")
 
     try:
         df = load_police_data()
+        region_col = find_column(df, ["지역", "동별", "경찰서", "관할"])
+        count_col = find_column(df, ["수", "개수", "건수"])
 
-        # 컬럼 동적 탐색
-        region_col = find_column(df, ["경찰서", "지역", "동별", "구별"])
-        count_col  = find_column(df, ["개수", "수", "건수"])
         if not region_col or not count_col:
-            raise KeyError(f"❌ 컬럼 탐색 실패: {list(df.columns)}")
+            raise KeyError(f"❌ 필요한 컬럼을 찾을 수 없습니다: {list(df.columns)}")
 
-        # 컬럼명 통일
         df = df.rename(columns={region_col: "지역", count_col: "개수"})
         df = df.sort_values("개수", ascending=False)
 
-        # 시각화
-        fig, ax = plt.subplots(figsize=(10, 6), dpi=80)
+        fig, ax = plt.subplots(figsize=(10, 6))
         bars = ax.bar(df["지역"], df["개수"], color="skyblue")
 
         ax.set_xticks(range(len(df)))
@@ -90,4 +84,4 @@ def tab4_police_count():
     except KeyError as ke:
         st.error(str(ke))
     except Exception as e:
-        st.error(f"❌ 경찰서 수 시각화 오류: {type(e).__name__}: {e}")
+        st.error(f"❌ 시각화 오류: {type(e).__name__}: {e}")

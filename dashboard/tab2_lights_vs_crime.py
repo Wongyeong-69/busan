@@ -24,21 +24,19 @@ else:
             st.error(f"❌ 한글 폰트 로드 실패: {e}")
             font_path = None
 
+# ✅ FontProperties 객체로 폰트 설정
 if font_path:
-    # 폰트 등록
-    fm.fontManager.addfont(font_path)
-    # 폰트 이름 얻기
-    font_name = fm.FontProperties(fname=font_path).get_name()
-    # 전역 rcParam 설정
-    plt.rcParams['font.family'] = font_name
-plt.rcParams['axes.unicode_minus'] = False
+    fontprop = fm.FontProperties(fname=font_path)
+    plt.rcParams['axes.unicode_minus'] = False
+else:
+    fontprop = None
 
-# ─── 데이터 로더 (UTF-8 전용) ───
+# ─── 데이터 로더 ───
 @st.cache_data
 def load_lights_data(path="data/가로등현황.csv"):
     df = pd.read_csv(path, encoding="utf-8")
     df.columns = df.columns.str.strip()
-    df = df.dropna(axis=1, how='all')       # 완전 빈 열 제거
+    df = df.dropna(axis=1, how='all')
     if '관리부서' in df.columns:
         df = df.rename(columns={'관리부서': '지역'})
     else:
@@ -62,7 +60,7 @@ def load_crime_data(path="data/경찰청_범죄현황.csv"):
                 break
     return df[['지역', '합계_범죄']]
 
-# ─── 탭2 함수 ───
+# ─── 탭 함수 ───
 def tab2_lights_vs_crime():
     st.subheader("지역별 가로등 수 vs 5대 범죄 발생 수")
 
@@ -77,11 +75,11 @@ def tab2_lights_vs_crime():
         ax.plot(merged['지역'], merged['합계_범죄'], marker='s', label='범죄 발생 수', color='red')
 
         ax.set_xticks(range(len(merged)))
-        ax.set_xticklabels(merged['지역'], rotation=45)
-        ax.set_xlabel("지역")
-        ax.set_ylabel("건수")
-        ax.set_title("지역별 가로등 수와 범죄 발생 수 비교")
-        ax.legend()
+        ax.set_xticklabels(merged['지역'], rotation=45, fontproperties=fontprop)
+        ax.set_xlabel("지역", fontproperties=fontprop)
+        ax.set_ylabel("건수", fontproperties=fontprop)
+        ax.set_title("지역별 가로등 수와 범죄 발생 수 비교", fontproperties=fontprop)
+        ax.legend(prop=fontprop)
         ax.grid(True)
 
         st.pyplot(fig)
