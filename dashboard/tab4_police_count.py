@@ -27,7 +27,7 @@ else:
 if font_path:
     fontprop = fm.FontProperties(fname=font_path)
     plt.rcParams['axes.unicode_minus'] = False
-    plt.rcParams['font.family'] = fontprop.get_name()  # ✅ 전체 그래프에 적용
+    plt.rcParams['font.family'] = fontprop.get_name()  # ✅ 전역 설정
 else:
     fontprop = None
 
@@ -64,10 +64,10 @@ def tab4_police_count():
         bars = ax.bar(df["지역"], df["개수"], color="skyblue")
 
         ax.set_xticks(range(len(df)))
-        ax.set_xticklabels(df["지역"], rotation=45)
-        ax.set_xlabel("지역")
-        ax.set_ylabel("경찰서 수")
-        ax.set_title("부산 동별 경찰서 수")
+        ax.set_xticklabels(df["지역"], rotation=45, fontproperties=fontprop)  # ✅ 한글 명시
+        ax.set_xlabel("지역", fontproperties=fontprop)                        # ✅ 한글 명시
+        ax.set_ylabel("경찰서 수", fontproperties=fontprop)                   # ✅ 한글 명시
+        ax.set_title("부산 동별 경찰서 수", fontproperties=fontprop)         # ✅ 한글 명시
 
         for bar in bars:
             h = bar.get_height()
@@ -76,7 +76,8 @@ def tab4_police_count():
                 h,
                 f"{int(h)}",
                 ha="center",
-                va="bottom"
+                va="bottom",
+                fontproperties=fontprop                                         # ✅ 숫자에도 한글 폰트 적용
             )
 
         st.pyplot(fig)
