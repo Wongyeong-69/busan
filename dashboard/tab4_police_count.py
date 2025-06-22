@@ -27,11 +27,7 @@ else:
 if font_path:
     fontprop = fm.FontProperties(fname=font_path)
     plt.rcParams['axes.unicode_minus'] = False
-<<<<<<< HEAD
     plt.rcParams['font.family'] = fontprop.get_name()  # ✅ 전역 설정
-=======
-    plt.rcParams['font.family'] = fontprop.get_name()  # ✅ 전체 그래프에 적용
->>>>>>> 8e0557a (부산 시각화 대시보드 업로드)
 else:
     fontprop = None
 
@@ -55,7 +51,7 @@ def tab4_police_count():
 
     try:
         df = load_police_data()
-        region_col = find_column(df, ["지역", "동별", "경찰서", "관할"])
+        region_col = find_column(df, ["지역", "동", "경찰서", "관할"])
         count_col = find_column(df, ["수", "개수", "건수"])
 
         if not region_col or not count_col:
@@ -68,10 +64,10 @@ def tab4_police_count():
         bars = ax.bar(df["지역"], df["개수"], color="skyblue")
 
         ax.set_xticks(range(len(df)))
-        ax.set_xticklabels(df["지역"], rotation=45, fontproperties=fontprop)  # ✅ 한글 명시
-        ax.set_xlabel("지역", fontproperties=fontprop)                        # ✅ 한글 명시
-        ax.set_ylabel("경찰서 수", fontproperties=fontprop)                   # ✅ 한글 명시
-        ax.set_title("부산 동별 경찰서 수", fontproperties=fontprop)         # ✅ 한글 명시
+        ax.set_xticklabels(df["지역"], rotation=45, fontproperties=fontprop)
+        ax.set_xlabel("지역", fontproperties=fontprop)
+        ax.set_ylabel("경찰서 수", fontproperties=fontprop)
+        ax.set_title("부산 동별 경찰서 수", fontproperties=fontprop)
 
         for bar in bars:
             h = bar.get_height()
@@ -81,7 +77,7 @@ def tab4_police_count():
                 f"{int(h)}",
                 ha="center",
                 va="bottom",
-                fontproperties=fontprop                                         # ✅ 숫자에도 한글 폰트 적용
+                fontproperties=fontprop
             )
 
         st.pyplot(fig)

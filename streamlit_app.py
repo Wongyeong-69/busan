@@ -10,7 +10,7 @@ from dashboard.tab3_oneperson_vs_lights import tab3_oneperson_vs_lights
 from dashboard.tab4_police_count import tab4_police_count
 from dashboard.tab5_school_count import tab5_school_count  # ✅ NEW
 
-st.title("📊 부산에서 가장 안전한 동네는 어디일까?")
+st.title("📌부산시 통합 시각화 데시보드")   #데이터 기반으로 분석한 부산의 안전한 생활권  #📈 
 
 # ✅ 탭 순서 조정: 5번(학교 수)을 4번으로, 4번(경찰서 수)을 5번으로
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
