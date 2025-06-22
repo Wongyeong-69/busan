@@ -1,5 +1,3 @@
-# dashboard/tab4_police_count.py
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -27,25 +25,25 @@ else:
 if font_path:
     fontprop = fm.FontProperties(fname=font_path)
     plt.rcParams['axes.unicode_minus'] = False
-    plt.rcParams['font.family'] = fontprop.get_name()  # ✅ 전역 설정
+    plt.rcParams['font.family'] = fontprop.get_name()
 else:
     fontprop = None
 
-# ─── 데이터 로더 ───
+# ─── 데이터 로드 ───
 @st.cache_data
 def load_police_data(path="data/부산동별경찰서.csv"):
     df = pd.read_csv(path, encoding="utf-8")
     df.columns = df.columns.str.strip()
     return df
 
-# ─── 키워드 컬럼 찾기 ───
+# ─── 컬럼 자동 탐색 ───
 def find_column(df, keywords):
     for col in df.columns:
         if any(kw in col for kw in keywords):
             return col
     return None
 
-# ─── 탭 함수 ───
+# ─── 메인 탭 함수 ───
 def tab4_police_count():
     st.subheader("🚓 부산 동별 경찰서 수")
 

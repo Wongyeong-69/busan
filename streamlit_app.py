@@ -1,4 +1,21 @@
 import streamlit as st
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+import os
+
+
+def set_korean_font():
+    font_path = os.path.join(os.path.dirname(__file__), "NanumGothic.ttf")
+    if not os.path.exists(font_path):
+        st.warning("❗ NanumGothic.ttf 파일이 없습니다. 한글이 깨질 수 있습니다.")
+        return
+
+    fm.fontManager.addfont(font_path)
+    font_name = fm.FontProperties(fname=font_path).get_name()
+    plt.rcParams['font.family'] = font_name
+    plt.rcParams['axes.unicode_minus'] = False
+
+set_korean_font()  # 🔻 이거 꼭 실행해야 적용됨
 
 # ✅ 가장 첫 줄에서 단 한 번 호출
 st.set_page_config(page_title="부산시 통합 시각화", layout="wide")
@@ -15,8 +32,8 @@ st.title("📌부산시 통합 시각화 데시보드")   #데이터 기반으�
 # ✅ 탭 순서 조정: 5번(학교 수)을 4번으로, 4번(경찰서 수)을 5번으로
 tab1, tab2, tab3, tab4 = st.tabs([
     "📍 CCTV 지도 + 범죄 ",
-    "📈 가로등 vs 범죄",
- #   "🏠 1인 가구 vs 가로등",
+    "🏠 1인 가구 vs 범죄 율 ",
+ #   "📈 가로등 vs 범죄 ",
     "🏫 부산 동별 학교 수",      # ✅ tab5 내용
     "🚓 동별 경찰서 수"          # ✅ tab4 내용
 ])

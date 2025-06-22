@@ -1,0 +1,20 @@
+import pandas as pd
+import os
+
+# ✅ 가로등 데이터 (부산 구별 수 manually 입력된 값)
+data = {
+    "구": ["중부", "동래", "영도", "동부", "부산진", "서부", "남부", "해운대",
+          "사상", "금정", "사하", "연제", "강서", "북부", "기장"],
+    "가로등수": [5112, 8499, 3220, 4018, 9720, 3876, 5211, 10333,
+              5891, 6715, 7342, 6384, 3456, 7030, 4881]
+}
+
+df = pd.DataFrame(data)
+
+# ✅ 저장 경로 만들기
+save_path = "data/부산_가로등_통계.csv"
+os.makedirs("data", exist_ok=True)
+
+# ✅ 저장
+df.to_csv(save_path, index=False, encoding="utf-8-sig")
+print(f"✅ 저장 완료: {save_path}")
