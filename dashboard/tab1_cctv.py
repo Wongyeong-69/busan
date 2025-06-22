@@ -57,35 +57,34 @@ def tab1_cctv():
     left_col, right_col = st.columns([1, 1.5])
 
     # ▶️ 왼쪽: CCTV 지도
-    # with left_col:
-    #    # st.subheader("🗺 CCTV 위치 지도")
-    #     df_vis = load_cctv_data()
+    with left_col:
+        df_vis = load_cctv_data()
+        df_vis = df_vis.sample(frac=0.3, random_state=42)  # ✅ 30% 무작위 추출
 
-    #     m = folium.Map(
-    #         location=[df_vis["위도"].mean(), df_vis["경도"].mean()],
-    #         zoom_start=11,
-    #         tiles="OpenStreetMap"
-    #     )
-    #     marker_cluster = MarkerCluster().add_to(m)
-    #     for _, row in df_vis.iterrows():
-    #         popup = (
-    #             f"<b>목적:</b> {row['목적']}<br>"
-    #             f"<b>장소:</b> {row['설치장소']}<br>"
-    #             f"<b>연도:</b> {row['설치연도']}<br>"
-    #             f"<b>대수:</b> {row['대수']}"
-    #         )
-    #         folium.Marker(
-    #             location=[row["위도"], row["경도"]],
-    #             popup=folium.Popup(popup, max_width=300)
-    #         ).add_to(marker_cluster)
+        m = folium.Map(
+            location=[df_vis["위도"].mean(), df_vis["경도"].mean()],
+            zoom_start=11,
+            tiles="OpenStreetMap"
+        )
+        marker_cluster = MarkerCluster().add_to(m)
+        for _, row in df_vis.iterrows():
+            popup = (
+                f"<b>목적:</b> {row['목적']}<br>"
+                f"<b>장소:</b> {row['설치장소']}<br>"
+                f"<b>연도:</b> {row['설치연도']}<br>"
+                f"<b>대수:</b> {row['대수']}"
+            )
+            folium.Marker(
+                location=[row["위도"], row["경도"]],
+                popup=folium.Popup(popup, max_width=300)
+            ).add_to(marker_cluster)
 
-    #     st_folium(m, width=500, height=600)
+        st_folium(m, width=500, height=600)
 
     # ▶️ 오른쪽: 라디오 버튼 + 분석 결과
     with right_col:
         st.subheader("📊 CCTV 및 범죄 데이터 분석")
 
-        # ✅ 라디오 버튼을 오른쪽 영역 최상단에 배치
         option = st.radio(
             "🔍 항목 선택",
             ["1. CCTV 개수 vs 범죄건수", "2. CCTV 대비 범죄율", "3. 범죄율 정렬"],
@@ -125,4 +124,4 @@ def tab1_cctv():
         elif option == "3. 범죄율 정렬":
             sorted_df = data.sort_values("범죄율", ascending=True).reset_index(drop=True)
             st.markdown("#### 📋 CCTV 대비 범죄율 낮은 순 정렬")
-            st.dataframe(sorted_df, use_container_width=True) 
+            st.dataframe(sorted_df, use_container_width=True)
