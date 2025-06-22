@@ -23,7 +23,7 @@ st.set_page_config(page_title="부산시 통합 시각화", layout="wide")
 # ✅ 각 탭 함수 import
 from dashboard.tab1_cctv import tab1_cctv
 from dashboard.tab2_lights_vs_crime import tab2_lights_vs_crime 
-from dashboard.tab3_oneperson_vs_lights import tab3_oneperson_vs_lights
+#from dashboard.tab3_oneperson_vs_lights import tab3_oneperson_vs_lights
 from dashboard.tab4_police_count import tab4_police_count
 from dashboard.tab5_school_count import tab5_school_count  # ✅ NEW
 
