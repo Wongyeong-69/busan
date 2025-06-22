@@ -5,9 +5,6 @@ import matplotlib.font_manager as fm
 import numpy as np
 import urllib.request
 import os
-import folium
-from folium.plugins import MarkerCluster
-from streamlit_folium import st_folium
 
 # ✅ 한글 폰트 설정
 def set_korean_font():
@@ -24,22 +21,7 @@ def set_korean_font():
     plt.rc('font', family=font_name)
     plt.rcParams['axes.unicode_minus'] = False
 
-# ✅ CCTV 데이터 로드
-@st.cache_data
-def load_cctv_data():
-    df = pd.read_excel("data/12_04_08_E_CCTV정보.xlsx", engine="openpyxl")
-    cols = df.columns.tolist()
-    find = lambda kw: next((c for c in cols if kw in c), None)
-    return df.rename(columns={
-        find("설치목적"): "목적",
-        find("도로명주소"): "설치장소",
-        find("위도"): "위도",
-        find("경도"): "경도",
-        find("설치연"): "설치연도",
-        find("카메라대수"): "대수"
-    }).dropna(subset=["위도", "경도"])
-
-# ✅ 범죄 데이터 로드
+# ✅ 범죄 + CCTV 데이터 로드
 @st.cache_data
 def load_crime_data():
     df = pd.read_csv("data/경찰청_부산경찰서별_범죄현황_UTF8.csv", encoding="utf-8-sig")
@@ -49,57 +31,59 @@ def load_crime_data():
     data["범죄율"] = data["범죄건수"] / data["CCTV개수"]
     return data.reset_index(drop=True)
 
-# ✅ 탭 함수 정의
+# ✅ 메인 분석 탭
 def tab1_cctv():
     set_korean_font()
     st.subheader("🗺️ CCTV 지도 및 범죄 분석")
 
     left_col, right_col = st.columns([1, 1.5])
 
-    # ▶️ 왼쪽: CCTV 지도
-    with left_col:
-        df_vis = load_cctv_data()
-        df_vis = df_vis.sample(frac=0.3, random_state=42)  # ✅ 30% 무작위 추출
-
-        m = folium.Map(
-            location=[df_vis["위도"].mean(), df_vis["경도"].mean()],
-            zoom_start=11,
-            tiles="OpenStreetMap"
-        )
-        marker_cluster = MarkerCluster().add_to(m)
-        for _, row in df_vis.iterrows():
-            popup = (
-                f"<b>목적:</b> {row['목적']}<br>"
-                f"<b>장소:</b> {row['설치장소']}<br>"
-                f"<b>연도:</b> {row['설치연도']}<br>"
-                f"<b>대수:</b> {row['대수']}"
-            )
-            folium.Marker(
-                location=[row["위도"], row["경도"]],
-                popup=folium.Popup(popup, max_width=300)
-            ).add_to(marker_cluster)
-
-        st_folium(m, width=500, height=600)
-
-    # ▶️ 오른쪽: 라디오 버튼 + 분석 결과
     with right_col:
         st.subheader("📊 CCTV 및 범죄 데이터 분석")
 
         option = st.radio(
             "🔍 항목 선택",
-            ["1. CCTV 개수 vs 범죄건수", "2. CCTV 대비 범죄율", "3. 범죄율 정렬"],
+            ["1. 인구수 대비 범죄율", "2. CCTV 개수 vs 범죄건수", "3. CCTV 대비 범죄율"],
             horizontal=True,
             key="radio_inside"
         )
 
-        data = load_crime_data()
+        if option == "1. 인구수 대비 범죄율":
+            # ✅ 데이터 로드
+            crime_df = pd.read_csv("data/경찰청_부산경찰서별_범죄현황_UTF8.csv", encoding="utf-8-sig")
+            crime_df.columns = crime_df.columns.str.strip()
 
-        if option == "1. CCTV 개수 vs 범죄건수":
+            population_df = pd.read_csv("data/부산광역시 주민등록인구통계_20231231.csv", encoding="cp949")
+            population_df.columns = ['경찰서', '인구수']
+
+            # ✅ 병합 및 계산
+            crime_df = crime_df[['경찰서', '합계']].copy()
+            crime_df.columns = ['경찰서', '범죄건수']
+            merged = pd.merge(crime_df, population_df, on='경찰서', how='inner')
+            merged['범죄율(%)'] = (merged['범죄건수'] / merged['인구수']) * 100
+            merged = merged.sort_values(by='범죄율(%)', ascending=False)
+
+            # ✅ 시각화
+            fig, ax = plt.subplots(figsize=(12, 6))
+            ax.bar(merged['경찰서'], merged['범죄율(%)'], color='tomato')
+            ax.set_title('부산시 인구 수 대비 범죄율 (%)')
+            ax.set_xlabel('인구 수')
+            ax.set_ylabel('범죄율 (%)')
+            ax.set_xticks(range(len(merged)))
+            ax.set_xticklabels(merged['경찰서'], rotation=45)
+            ax.grid(axis='y', linestyle='--', alpha=0.4)
+            st.pyplot(fig)
+
+            st.markdown("✅ 인구수 대비 범죄율 상위 지역")
+            st.dataframe(merged.reset_index(drop=True), use_container_width=True)
+
+        elif option == "2. CCTV 개수 vs 범죄건수":
+            data = load_crime_data()
             fig, ax = plt.subplots(figsize=(10, 5))
             ax.plot(data["경찰서"], data["CCTV개수"], label="CCTV 개수", marker='o', color='orange')
             ax.plot(data["경찰서"], data["범죄건수"], label="범죄 건수", marker='s', color='orangered')
             ax.set_title("지역별 CCTV 개수와 범죄 발생 건수 비교")
-            ax.set_xlabel("경찰서")
+            ax.set_xlabel("동")
             ax.set_ylabel("건수")
             ax.set_xticks(np.arange(len(data)))
             ax.set_xticklabels(data["경찰서"], rotation=45)
@@ -110,18 +94,14 @@ def tab1_cctv():
             corr = data["CCTV개수"].corr(data["범죄건수"])
             st.markdown(f"<p style='font-size: 12px; color: gray;'>📌 상관계수: <b>{corr:.2f}</b></p>", unsafe_allow_html=True)
 
-        elif option == "2. CCTV 대비 범죄율":
+        elif option == "3. CCTV 대비 범죄율":
+            data = load_crime_data()
             fig, ax = plt.subplots(figsize=(10, 5))
             ax.bar(data["경찰서"], data["범죄율"], color='gray', alpha=0.6)
             ax.set_title("지역별 CCTV 대비 범죄율")
-            ax.set_xlabel("경찰서")
+            ax.set_xlabel("동")
             ax.set_ylabel("범죄율")
             ax.set_xticks(np.arange(len(data)))
             ax.set_xticklabels(data["경찰서"], rotation=45)
             ax.grid(axis='y', linestyle='--', alpha=0.5)
             st.pyplot(fig)
-
-        elif option == "3. 범죄율 정렬":
-            sorted_df = data.sort_values("범죄율", ascending=True).reset_index(drop=True)
-            st.markdown("#### 📋 CCTV 대비 범죄율 낮은 순 정렬")
-            st.dataframe(sorted_df, use_container_width=True)
