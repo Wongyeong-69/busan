@@ -2,62 +2,67 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
+import numpy as np
 import os
 
-# ✅ 한글 폰트 설정
-font_path = "NanumGothic.ttf"
-if os.path.exists(font_path):
-    fontprop = fm.FontProperties(fname=font_path)
-    plt.rcParams['font.family'] = fontprop.get_name()
-    plt.rcParams['axes.unicode_minus'] = False
-else:
-    st.error("❌ NanumGothic.ttf 폰트 파일이 존재하지 않습니다.")
-    st.stop()
-
-# ✅ 인구수 데이터
-population_dict = {
-    "중부": 11786, "동래": 35220, "영도": 20116, "동부": 18603,
-    "부산진": 70609, "서부": 20760, "남부": 40521, "해운대": 50516,
-    "사상": 36299, "금정": 40412, "사하": 46442, "연제": 30846,
-    "강서": 17355, "북부": 36975, "기장": 22500
-}
-
-# ✅ 가로등 수 데이터
-lights_dict = {
-    "중부": 5112, "동래": 8499, "영도": 3220, "동부": 4018,
-    "부산진": 9720, "서부": 3876, "남부": 5211, "해운대": 10333,
-    "사상": 5891, "금정": 6715, "사하": 7342, "연제": 6384,
-    "강서": 3456, "북부": 7030, "기장": 4881
-}
-
-# ✅ 데이터 처리
-@st.cache_data
-def load_data():
-    df = pd.read_csv("data/경찰청_부산경찰서별_범죄현황_UTF8.csv")
-    df = df.rename(columns={"경찰서": "구"})
-    df = df[df["구"].notna()]
-    df["구"] = df["구"].astype(str)
-    df["인구수"] = df["구"].map(population_dict)
-    df["가로등수"] = df["구"].map(lights_dict)
-    df = df[df["인구수"].notna() & df["가로등수"].notna()]
-    df["범죄율(1만명당)"] = (df["합계"] / df["인구수"]) * 10000
-    return df
-
-# ✅ 탭 함수
 def tab2_lights_vs_crime():
-    st.subheader("💡 구별 가로등 수 대비 범죄율 비교")
+    st.subheader("💡 부산 구별 인구당 가로등 수 비교")
 
-    df = load_data()
-    df = df.sort_values("범죄율(1만명당)", ascending=False)
+    light_file = "data/가로등현황.csv"
+    pop_file = "data/부산광역시 주민등록인구통계_20231231.csv"
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.bar(df["구"], df["범죄율(1만명당)"], color="salmon")
-    ax.set_title("부산 구별 인구 1만명당 범죄율", fontproperties=fontprop)
-    ax.set_xlabel("구", fontproperties=fontprop)
-    ax.set_ylabel("범죄율 (인구 1만명당)", fontproperties=fontprop)
-    ax.set_xticklabels(df["구"], rotation=45, fontproperties=fontprop)
+    # ✅ 인코딩 자동 감지 함수
+    def detect_encoding(file_path):
+        import chardet
+        with open(file_path, 'rb') as f:
+            return chardet.detect(f.read())['encoding']
 
+    try:
+        light_encoding = detect_encoding(light_file)
+        pop_encoding = detect_encoding(pop_file)
+
+        light_df = pd.read_csv(light_file, encoding=light_encoding)
+        pop_df = pd.read_csv(pop_file, encoding=pop_encoding)
+    except Exception as e:
+        st.error(f"❌ 파일 로드 오류: {e}")
+        return
+
+    try:
+        # 🔍 실제 컬럼명 확인 후 수정
+        light_df = light_df.rename(columns={light_df.columns[0]: "구군", light_df.columns[-1]: "가로등수"})
+        pop_df = pop_df.rename(columns={pop_df.columns[0]: "구군", pop_df.columns[-1]: "인구수"})
+
+        light_df["가로등수"] = light_df["가로등수"].astype(str).str.replace(",", "").astype(int)
+        pop_df["인구수"] = pop_df["인구수"].astype(str).str.replace(",", "").astype(int)
+
+        df = pd.merge(light_df, pop_df, on="구군")
+        df["1만명당 가로등 수"] = df["가로등수"] / (df["인구수"] / 10000)
+        df = df.sort_values(by="1만명당 가로등 수", ascending=False)
+    except Exception as e:
+        st.error(f"❌ 데이터 처리 오류: {e}")
+        return
+
+    # ✅ 폰트 설정
+    font_path = "NanumGothic.ttf"
+    if os.path.exists(font_path):
+        font_prop = fm.FontProperties(fname=font_path)
+        plt.rc('font', family=font_prop.get_name())
+    else:
+        plt.rc('font', family='Malgun Gothic')
+    plt.rcParams['axes.unicode_minus'] = False
+
+    # ✅ 시각화
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.bar(df["구군"], df["1만명당 가로등 수"], color="gold")
+    ax.set_title("부산 구별 인구 1만명당 가로등 수")
+    ax.set_xlabel("구군")
+    ax.set_ylabel("1만명당 가로등 수")
+    ax.grid(axis='y', linestyle='--', alpha=0.6)
+    plt.xticks(rotation=45)
     st.pyplot(fig)
+
+    #st.dataframe(df.reset_index(drop=True))
+
 
 
 
