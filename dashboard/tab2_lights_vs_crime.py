@@ -11,24 +11,15 @@ def tab2_lights_vs_crime():
     light_file = "data/가로등현황.csv"
     pop_file = "data/부산광역시 주민등록인구통계_20231231.csv"
 
-    # ✅ 인코딩 자동 감지 함수
-    def detect_encoding(file_path):
-        import chardet
-        with open(file_path, 'rb') as f:
-            return chardet.detect(f.read())['encoding']
-
     try:
-        light_encoding = detect_encoding(light_file)
-        pop_encoding = detect_encoding(pop_file)
-
-        light_df = pd.read_csv(light_file, encoding=light_encoding)
-        pop_df = pd.read_csv(pop_file, encoding=pop_encoding)
+        # 인코딩 직접 지정
+        light_df = pd.read_csv(light_file, encoding='utf-8-sig')  # 또는 'cp949'
+        pop_df = pd.read_csv(pop_file, encoding='cp949')          # 한글 포함된 엑셀 변환 CSV는 보통 cp949
     except Exception as e:
         st.error(f"❌ 파일 로드 오류: {e}")
         return
 
     try:
-        # 🔍 실제 컬럼명 확인 후 수정
         light_df = light_df.rename(columns={light_df.columns[0]: "구군", light_df.columns[-1]: "가로등수"})
         pop_df = pop_df.rename(columns={pop_df.columns[0]: "구군", pop_df.columns[-1]: "인구수"})
 
@@ -60,6 +51,7 @@ def tab2_lights_vs_crime():
     ax.grid(axis='y', linestyle='--', alpha=0.6)
     plt.xticks(rotation=45)
     st.pyplot(fig)
+
 
     #st.dataframe(df.reset_index(drop=True))
 
